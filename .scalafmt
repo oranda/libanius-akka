@@ -1,0 +1,3 @@
+# Example .scalafmt, comments are supported.
+# For pretty alignment: --style defaultWithAlign
+--maxColumn 100

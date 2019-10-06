@@ -1,0 +1,84 @@
+/*
+ * Libanius
+ * Copyright (C) 2012-2019 James McCabe <james@oranda.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package com.oranda.libanius.dependencies
+
+import com.typesafe.config.ConfigFactory
+
+object Conf {
+
+  def setUp() = {
+    val config = ConfigFactory.load()
+    new Conf(
+      enableLogging = config.getBoolean("libanius.enableLogging"),
+      enablePersistence = config.getBoolean("libanius.enablePersistence"),
+      numEventsBetweenSnapshots = config.getInt("libanius.numEventsBetweenSnapshots"),
+      email = config.getString("libanius.email"),
+      fileQuizRoot = config.getString("libanius.file.quizRoot"),
+      filesDir = config.getString("libanius.file.filesDir"),
+      resourcesDir = config.getString("libanius.file.resourcesDir"),
+      resQuizPublic = config.getString("libanius.res.quizPublic")
+    )
+  }
+
+  // Mock configuration for tests
+  def setUpForTest() = {
+    new Conf(
+      enableLogging = false,
+      enablePersistence = false,
+      numEventsBetweenSnapshots = 100,
+      email = "",
+      fileQuizRoot = "",
+      filesDir = "",
+      resourcesDir = "",
+      resQuizPublic = ""
+    )
+  }
+
+  // Configuration for preparing data files before the app is deployed
+  def setUpForParsing(fileQuizRoot: String) = {
+    new Conf(
+      enableLogging = true,
+      enablePersistence = false,
+      numEventsBetweenSnapshots = 100,
+      email = "",
+      fileQuizRoot,
+      filesDir = "",
+      resourcesDir = "",
+      resQuizPublic = ""
+    )
+  }
+}
+
+/*
+ * This could be extended in applications that use these classes as a library.
+ */
+class Conf(
+  val enableLogging: Boolean,
+  val enablePersistence: Boolean,
+  val numEventsBetweenSnapshots: Int,
+  val email: String,
+  val fileQuizRoot: String,
+  val filesDir: String,
+  val resourcesDir: String,
+  val resQuizPublic: String
+) {
+  lazy val fileQuiz = fileQuizRoot + ".qui"
+  lazy val fileQuizLastBackup = fileQuizRoot + "Backup" + ".qui"
+}
+
