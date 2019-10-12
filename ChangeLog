@@ -1,3 +1,10 @@
+== 0.11 Oct 12 2019
+
+ * The QuizForUserActor is given a unique userId (= persistenceId): supports cluster sharding.
+
+ * A default quiz (English -> German) is used by QuizForUserActor if the type isn't specified.
+
+
 == 0.1 Oct 5 2019
 
  * libanius 0.9.8.5.3 was taken and changed considerably to create this new project libanius-akka.
