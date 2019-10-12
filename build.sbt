@@ -47,7 +47,7 @@ assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeSca
 assemblyExcludedJars in assembly := {
   val cp = (fullClasspath in assembly).value
   cp filter { c =>
-    c.data.getName.startsWith("config-")
+    c.data.getName.startsWith("config-") ||
     c.data.getName.startsWith("akka-")
   }
 }
