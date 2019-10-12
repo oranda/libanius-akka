@@ -25,7 +25,6 @@ import com.oranda.libanius.model._
 object RunQuiz extends AppDependencyAccess {
   def main(args: Array[String]): Unit = {
     val availableQuizGroups = dataStore.findAvailableQuizGroups
-    println("availableQuizGroups " + availableQuizGroups.size)
     val quiz =
       if (!availableQuizGroups.isEmpty)
         Quiz(InteractiveQuiz.userQuizGroupSelection(availableQuizGroups.toList))

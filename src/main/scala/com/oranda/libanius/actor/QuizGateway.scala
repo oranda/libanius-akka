@@ -1,35 +1,40 @@
 package com.oranda.libanius.actor
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
+import akka.util.Timeout
+
 import com.oranda.libanius.actor.QuizForUserActor._
-import com.oranda.libanius.model.Quiz
 import com.oranda.libanius.model.quizgroup.QuizGroupHeader
 import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemViewWithChoices}
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
-class QuizGateway(system: ActorSystem, quiz: Quiz) extends QuizActorSystem(system, quiz) {
+class QuizGateway(quizActor: ActorRef, val system: ActorSystem) {
 
-  implicit val executionContext = system.dispatcher
+  implicit val ec = system.dispatcher
 
-  private val quizActor = system.actorOf(
-    Props(classOf[QuizForUserActor], quiz),
-    "quizActor"
-  )
+  // The default timeout for ?.
+  implicit val askTimeout = Timeout(30.seconds)
 
   def updateWithUserResponse(
+    userId: UserId,
     isCorrect: Boolean,
     quizGroupHeader: QuizGroupHeader,
     quizItem: QuizItem
   ) = {
-    quizActor ! UpdateWithUserResponse(isCorrect, quizGroupHeader, quizItem)
+    quizActor ! UpdateWithUserResponse(userId, isCorrect, quizGroupHeader, quizItem)
     Future.successful(true)
   }
 
-  def isResponseCorrect(quizGroupHeader: QuizGroupHeader, prompt: String, userResponse: String):
-    Future[Boolean] =
-    (quizActor ? IsResponseCorrect(quizGroupHeader, prompt, userResponse)).mapTo[Boolean]
+  def isResponseCorrect(
+    userId: UserId,
+    quizGroupHeader: QuizGroupHeader,
+    prompt: String,
+    userResponse: String
+  ): Future[Boolean] =
+    (quizActor ? IsResponseCorrect(userId, quizGroupHeader, prompt, userResponse)).mapTo[Boolean]
 
   def scoreSoFar: Future[BigDecimal] =
     (quizActor ? ScoreSoFar).mapTo[BigDecimal]

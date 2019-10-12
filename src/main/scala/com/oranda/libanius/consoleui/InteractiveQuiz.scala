@@ -18,15 +18,19 @@
 
 package com.oranda.libanius.consoleui
 
+import java.util.UUID
+
 import scala.util.{Failure, Success, Try}
 import com.oranda.libanius.util.StringUtil
 import Output._
 import ConsoleUtil._
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
+
+import InteractiveQuiz.userId
 import com.oranda.libanius.dependencies._
-import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemViewWithChoices}
+import com.oranda.libanius.model.quizitem.QuizItemViewWithChoices
 import com.oranda.libanius.model.quizgroup.{QuizGroup, QuizGroupHeader, WordMapping}
-import com.oranda.libanius.actor.QuizGateway
+import com.oranda.libanius.actor.{QuizForUserActor, QuizGateway, UserId}
 import com.oranda.libanius.model.{Quiz, UserResponse}
 
 import scala.concurrent.{Await, Future}
@@ -117,7 +121,7 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
   ) = {
     val (quizGroupHeader, prompt) = (quizItem.quizGroupHeader, quizItem.prompt.value)
     val isCorrect = Await.result(
-      quizGateway.isResponseCorrect(quizGroupHeader, prompt, userResponse),
+      quizGateway.isResponseCorrect(userId, quizGroupHeader, prompt, userResponse),
       10.seconds
     )
     if (isCorrect)
@@ -125,7 +129,7 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
     else
       output(s"\nWrong! It's ${quizItem.correctResponse}\n")
     Await.result(
-      quizGateway.updateWithUserResponse(isCorrect, quizGroupHeader, quizItem.quizItem),
+      quizGateway.updateWithUserResponse(userId, isCorrect, quizGroupHeader, quizItem.quizItem),
       10.seconds
     )
   }
@@ -138,15 +142,23 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
 }
 
 object InteractiveQuiz extends AppDependencyAccess {
+  val userId = UserId(new UUID(0, 0)) // Single user console app
+
   def runQuiz(quiz: Quiz): Unit = {
-    implicit val system = ActorSystem("libanius")
-    val interactiveQuiz = new InteractiveQuiz(new QuizGateway(system, quiz))
+    val system = ActorSystem("libanius")
+    val quizActor = system.actorOf(
+      Props(classOf[QuizForUserActor], userId, quiz),
+      "quizActor"
+    )
+    val quizGateway = new QuizGateway(quizActor, system)
+    val interactiveQuiz = new InteractiveQuiz(quizGateway)
     output("OK, the quiz begins! To quit, type q at any time.\n")
     interactiveQuiz.testUserWithQuizItem()
   }
 
   def userQuizGroupSelection(
-    quizGroupHeaders: List[QuizGroupHeader]): Map[QuizGroupHeader, QuizGroup] = {
+    quizGroupHeaders: List[QuizGroupHeader]
+  ): Map[QuizGroupHeader, QuizGroup] = {
     output("Choose quiz group(s). For more than one, separate with commas, e.g. 1,2,3")
     val choices = ChoiceGroupQgHeaders(quizGroupHeaders)
     choices.show()

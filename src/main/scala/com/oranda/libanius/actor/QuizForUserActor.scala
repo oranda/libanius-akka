@@ -4,7 +4,7 @@ import akka.persistence.{PersistentActor, SnapshotOffer}
 
 import com.oranda.libanius.actor.QuizForUserActor._
 import com.oranda.libanius.model.action._
-import com.oranda.libanius.model.quizgroup.QuizGroupHeader
+import com.oranda.libanius.model.quizgroup.{QuizGroupHeader, WordMapping}
 import com.oranda.libanius.model.quizitem.QuizItem
 import com.oranda.libanius.model.Quiz
 import com.oranda.libanius.model.action.{QuizItemSource, modelComponentsAsQuizItemSources}
@@ -15,23 +15,23 @@ import modelComponentsAsQuizItemSources._
 
 import scala.concurrent.{Future, Promise}
 
-
-class QuizForUserActor(quiz: Quiz) extends PersistentActor {
+// There is a one-to-one relationship between a Quiz and a user
+class QuizForUserActor(userId: UserId, quiz: Quiz) extends PersistentActor {
 
   import context._
 
   private var state = QuizState(quiz)
 
-  override def persistenceId: String = "quiz"
+  override def persistenceId: String = userId.toString
 
   override def receiveCommand: Receive = {
-    case UpdateWithUserResponse(isCorrect, quizGroupHeader, quizItem) =>
+    case UpdateWithUserResponse(userId, isCorrect, quizGroupHeader, quizItem) =>
       handleEvent(QuizUpdatedWithUserResponse(isCorrect, quizGroupHeader, quizItem))
     case ScoreSoFar =>
       sender() ! Util.stopwatch(state.quiz.scoreSoFar, "scoreSoFar")
     case ProduceQuizItem =>
       sender() ! Util.stopwatch(produceQuizItem(state.quiz, NoParams()), "find quiz items")
-    case IsResponseCorrect(quizGroupHeader, prompt, userResponse) =>
+    case IsResponseCorrect(userId, quizGroupHeader, prompt, userResponse) =>
       sender() ! state.quiz.isCorrect(quizGroupHeader, prompt, userResponse)
   }
 
@@ -55,12 +55,10 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
   override def receiveRecover: Receive = {
     case event: QuizUpdatedWithUserResponse =>
       if (conf.enablePersistence) {
-        println("replaying event")
         state = state.updateWithUserResponse(event)
       }
     case SnapshotOffer(_, snapshot: QuizState) =>
       if (conf.enablePersistence) {
-        println("accepting snapshot")
         state = snapshot
       }
   }
@@ -68,19 +66,37 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
 
 object QuizForUserActor {
 
-  sealed trait QuizCommand
+  def apply(userId: UserId) {
+    apply(userId, conf.defaultPromptType, conf.defaultResponseType)
+  }
+
+  def apply(userId: UserId, promptType: String, responseType: String) {
+    val quiz = dataStore.findQuizGroupHeader(promptType, responseType, WordMapping) match {
+      case Some(initQgh) =>
+        val quizGroup = dataStore.initQuizGroup(initQgh)
+        Quiz(Map(initQgh -> quizGroup))
+      case _ => Quiz.demoQuiz()
+    }
+    new QuizForUserActor(userId, quiz)
+  }
+
+  sealed trait QuizCommand {
+    val userId: UserId
+  }
 
   final case class UpdateWithUserResponse(
+    userId: UserId,
     isCorrect: Boolean,
     quizGroupHeader: QuizGroupHeader,
     quizItem: QuizItem
   ) extends QuizCommand
 
-  final case object ScoreSoFar extends QuizCommand
+  final case class ScoreSoFar(userId: UserId) extends QuizCommand
 
-  final case object ProduceQuizItem extends QuizCommand
+  final case class ProduceQuizItem(userId: UserId) extends QuizCommand
 
   final case class IsResponseCorrect(
+    userId: UserId,
     quizGroupHeader: QuizGroupHeader,
     prompt: String,
     userResponse: String
