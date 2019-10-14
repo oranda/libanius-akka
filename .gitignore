@@ -24,3 +24,6 @@ libanius/script/
 # IntelliJ
 /.idea/
 *.iml
+
+# Shell scripts
+*.sh
