@@ -66,7 +66,7 @@ object modelComponentsAsQuizItemSources extends AppDependencyAccess {
       (for {
         (header, quizGroup) <- quiz.activeQuizGroups.toStream
         quizItem <- quizGroupAsSource.produceQuizItem(quizGroup).toStream
-      } yield quizGroup.quizItemWithChoices(quizItem, header)).headOption
+      } yield quizGroup.quizItemWithChoices(quizItem, quiz, header)).headOption
 
     /*
      * Near the end of the quiz, there will be items that are "nearly learnt" because they
@@ -81,7 +81,7 @@ object modelComponentsAsQuizItemSources extends AppDependencyAccess {
       (for {
         (header, quizGroup) <- quiz.activeQuizGroups
         quizItem <- quizGroupAsSource.findAnyUnfinishedQuizItem(quizGroup, NoParams())
-      } yield quizGroup.quizItemWithChoices(quizItem, header)).headOption
+      } yield quizGroup.quizItemWithChoices(quizItem, quiz, header)).headOption
     }
   }
 

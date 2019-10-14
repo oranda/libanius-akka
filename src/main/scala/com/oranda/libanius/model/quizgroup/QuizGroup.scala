@@ -172,22 +172,27 @@ case class QuizGroup private(
 
   protected[model] def get(level: Int): QuizGroupMemoryLevel = levels(level)
 
-  protected[model] def quizItemWithChoices(quizItem: QuizItem, header: QuizGroupHeader):
+  protected[model] def quizItemWithChoices(quizItem: QuizItem, quiz: Quiz, qgh: QuizGroupHeader):
       QuizItemViewWithChoices = {
     val numCorrectResponses = quizItem.userResponses.numCorrectResponsesInARow
     /*
      * A quiz item might be presented initially in multiple-choice format,
      * then later wihout any such assistance.
      */
-    val useMultipleChoice = numCorrectResponses < header.useMultipleChoiceUntil
+    val useMultipleChoice = numCorrectResponses < qgh.useMultipleChoiceUntil
     val falseAnswers =
       if (useMultipleChoice)
         Util.stopwatch(ConstructWrongChoices.execute(this, quizItem), "constructWrongChoices")
       else Nil
     val numCorrectResponsesRequired = numLevels // TODO: check inconsistency with the def numCorrectResponsesRequired
-    new QuizItemViewWithChoices(quizItem, currentPromptNumber, header,
-        falseAnswers, numCorrectResponses, numCorrectResponsesRequired,
-        useMultipleChoice)
+
+    val allChoices: List[String] =
+      QuizItemViewWithChoices.choicesInRandomOrder(quizItem, falseAnswers)
+    val promptResponseMap = QuizItemViewWithChoices.makePromptResponseMap(quiz, allChoices, qgh)
+
+    new QuizItemViewWithChoices(quizItem, currentPromptNumber, qgh, falseAnswers,
+      allChoices, promptResponseMap, numCorrectResponses, numCorrectResponsesRequired,
+      useMultipleChoice)
   }
 }
 

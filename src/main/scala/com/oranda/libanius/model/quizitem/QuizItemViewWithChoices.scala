@@ -22,7 +22,7 @@ import com.oranda.libanius.model.quizitem.TextValueOps.TextValue
 
 import scala.language.implicitConversions
 import scala.util.Random
-import com.oranda.libanius.model.UserResponsesAll
+import com.oranda.libanius.model.Quiz
 import com.oranda.libanius.model.quizgroup.QuizGroupHeader
 
 /**
@@ -30,32 +30,51 @@ import com.oranda.libanius.model.quizgroup.QuizGroupHeader
  * contains whatever information is necessary for the view, and for updating the backing data.
  */
 case class QuizItemViewWithChoices(
-    quizItem: QuizItem,
-    qgCurrentPromptNumber: Int,
-    quizGroupHeader: QuizGroupHeader,
-    falseAnswers: List[String],
-    numCorrectResponsesInARow: Int,
-    numCorrectResponsesRequired: Int,
-    useMultipleChoice: Boolean) {
-
+  quizItem: QuizItem,
+  qgCurrentPromptNumber: Int,
+  quizGroupHeader: QuizGroupHeader,
+  falseAnswers: List[String],
+  allChoices: List[String],
+  promptResponseMap: Seq[(String, String)], // ListMap did not work with upickle
+  numCorrectResponsesInARow: Int,
+  numCorrectResponsesRequired: Int,
+  useMultipleChoice: Boolean
+) {
   lazy val prompt: TextValue = quizItem.prompt
   lazy val correctResponse: TextValue = quizItem.correctResponse
   lazy val userResponses = quizItem.userResponses
   lazy val promptType = quizGroupHeader.promptType
   lazy val responseType = quizGroupHeader.responseType
 
-  lazy val allChoices: List[String] = choicesInRandomOrder(falseAnswers)
-
   def isComplete = numCorrectResponsesInARow >= numCorrectResponsesRequired
-
-  def choicesInRandomOrder(otherChoices: List[String]): List[String] = {
-    val allChoices = quizItem.correctResponse.value :: otherChoices
-    Random.shuffle(allChoices)
-  }
 }
 
 object QuizItemViewWithChoices {
   // Allow QuizItemViewWithChoices to stand in for QuizItem whenever necessary
   implicit def qiView2qi(quizItemView: QuizItemViewWithChoices): QuizItem =
     quizItemView.quizItem
+
+  def choicesInRandomOrder(quizItem: QuizItem, otherChoices: List[String]): List[String] = {
+    val allChoices = quizItem.correctResponse.value :: otherChoices
+    Random.shuffle(allChoices)
+  }
+
+  def makePromptResponseMap(
+    quiz: Quiz,
+    choices: Seq[String],
+    quizGroupHeader: QuizGroupHeader
+  ): Seq[(String, String)] =
+    choices.map(promptToResponses(quiz, _, quizGroupHeader))
+
+  private[this] def promptToResponses(
+    quiz: Quiz,
+    choice: String,
+    quizGroupHeader: QuizGroupHeader
+  ): (String, String) = {
+    val values = quiz.findPromptsFor(choice, quizGroupHeader) match {
+      case Nil => quiz.findResponsesFor(choice, quizGroupHeader.reverse)
+      case v => v
+    }
+    (choice, values.slice(0, 3).mkString(", "))
+  }
 }
