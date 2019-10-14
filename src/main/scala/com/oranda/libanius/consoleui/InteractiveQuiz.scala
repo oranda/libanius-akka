@@ -18,13 +18,13 @@
 
 package com.oranda.libanius.consoleui
 
+import akka.actor.{ActorSystem, Props}
 import java.util.UUID
 
 import scala.util.{Failure, Success, Try}
 import com.oranda.libanius.util.StringUtil
 import Output._
 import ConsoleUtil._
-import akka.actor.{ActorSystem, Props}
 
 import InteractiveQuiz.userId
 import com.oranda.libanius.dependencies._
@@ -147,7 +147,7 @@ object InteractiveQuiz extends AppDependencyAccess {
   def runQuiz(quiz: Quiz): Unit = {
     val system = ActorSystem("libanius")
     val quizActor = system.actorOf(
-      Props(classOf[QuizForUserActor], userId, quiz),
+      Props(classOf[QuizForUserActor], quiz),
       "quizActor"
     )
     val quizGateway = new QuizGateway(quizActor, system)

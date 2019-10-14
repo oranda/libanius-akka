@@ -16,22 +16,22 @@ import modelComponentsAsQuizItemSources._
 import scala.concurrent.{Future, Promise}
 
 // There is a one-to-one relationship between a Quiz and a user
-class QuizForUserActor(userId: UserId, quiz: Quiz) extends PersistentActor {
+class QuizForUserActor(quiz: Quiz) extends PersistentActor {
 
-  import context._
+  import context.system
 
   private var state = QuizState(quiz)
 
-  override def persistenceId: String = userId.toString
+  override val persistenceId: String = self.path.name
 
   override def receiveCommand: Receive = {
-    case UpdateWithUserResponse(userId, isCorrect, quizGroupHeader, quizItem) =>
+    case UpdateWithUserResponse(_, isCorrect, quizGroupHeader, quizItem) =>
       handleEvent(QuizUpdatedWithUserResponse(isCorrect, quizGroupHeader, quizItem))
-    case ScoreSoFar =>
+    case ScoreSoFar(_) =>
       sender() ! Util.stopwatch(state.quiz.scoreSoFar, "scoreSoFar")
-    case ProduceQuizItem =>
+    case ProduceQuizItem(_) =>
       sender() ! Util.stopwatch(produceQuizItem(state.quiz, NoParams()), "find quiz items")
-    case IsResponseCorrect(userId, quizGroupHeader, prompt, userResponse) =>
+    case IsResponseCorrect(_, quizGroupHeader, prompt, userResponse) =>
       sender() ! state.quiz.isCorrect(quizGroupHeader, prompt, userResponse)
   }
 
@@ -62,23 +62,13 @@ class QuizForUserActor(userId: UserId, quiz: Quiz) extends PersistentActor {
         state = snapshot
       }
   }
+
+  override def unhandled(message: Any): Unit = {
+    println(s"QuizForUserActor unhandled: $message")
+  }
 }
 
 object QuizForUserActor {
-
-  def apply(userId: UserId) {
-    apply(userId, conf.defaultPromptType, conf.defaultResponseType)
-  }
-
-  def apply(userId: UserId, promptType: String, responseType: String) {
-    val quiz = dataStore.findQuizGroupHeader(promptType, responseType, WordMapping) match {
-      case Some(initQgh) =>
-        val quizGroup = dataStore.initQuizGroup(initQgh)
-        Quiz(Map(initQgh -> quizGroup))
-      case _ => Quiz.demoQuiz()
-    }
-    new QuizForUserActor(userId, quiz)
-  }
 
   sealed trait QuizCommand {
     val userId: UserId
