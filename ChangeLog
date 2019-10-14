@@ -1,4 +1,11 @@
-== 0.11 Oct 12 2019
+== 0.2 Oct 13 2019
+
+ * Removed the userId from all but messages to the actor (the shard region will hold it).
+
+ * Include promptResponseMap in QuizItemViewWithChoices (to minimize network calls).
+
+
+== 0.1.1 Oct 12 2019
 
  * The QuizForUserActor is given a unique userId (= persistenceId): supports cluster sharding.
 
