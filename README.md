@@ -18,7 +18,7 @@ Usage
 =====
 
 Usually Libanius will be run through an interface such as https://github.com/oranda/libanius-scalajs-react, but a console UI is provided in this project.
-Get a copy of `github.com/oranda/libanius` using `git clone`,  From SBT, type:
+Get a copy of `github.com/oranda/libanius-akka` using `git clone`,  From SBT, type:
 
     run
 
