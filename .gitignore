@@ -20,6 +20,8 @@ libanius/script/
 
 # Files generated at runtime
 /project/target/
+/target/
+/project/project/
 
 # IntelliJ
 /.idea/
