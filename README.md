@@ -11,7 +11,7 @@ The implementation is in Scala. The main target platforms are the Web and Androi
 
 Suggestions for new features and code improvements will be happily received by:
 
-James McCabe <james@oranda.com>
+James McCabe <jjtmccabe@gmail.com>
 
 
 Usage
