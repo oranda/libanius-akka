@@ -70,6 +70,9 @@ case class Quiz(private val quizGroups: Map[QuizGroupHeader, QuizGroup] = ListMa
 
   def numDictionaryKeyWords(qgh: QuizGroupHeader) = quizGroups(qgh).numDictionaryKeyWords
 
+  def findQuizGroupHeader(promptType: String, responseType: String): Option[QuizGroupHeader] =
+    quizGroups.keys.find(qgh => qgh.promptType == promptType && qgh.responseType == responseType)
+
   def resultsBeginningWith(input: String): List[SearchResult] =
     activeQuizGroups.flatMap {
       case (header, quizGroup) =>
@@ -112,6 +115,25 @@ case class Quiz(private val quizGroups: Map[QuizGroupHeader, QuizGroup] = ListMa
 
   def deactivate(header: QuizGroupHeader): Quiz =
     Quiz.quizGroupsLens.set(this, mapVPLens(header) mod ((_: QuizGroup).deactivate, quizGroups))
+
+  def deactivateAll: Quiz =
+    quizGroups.keys.foldLeft(this)((quiz, qgh) => quiz.deactivate(qgh))
+
+  /*
+   * Returns the updated quiz and the quizGroupHeader if it was found in the data store.
+   */
+  def loadQuizGroup(promptType: String, responseType: String): (Quiz, Option[QuizGroupHeader]) =
+    findQuizGroupHeader(promptType, responseType) match {
+      case Some(qgh) => (this, Some(qgh))
+      case None =>
+        dataStore.findQuizGroupHeader(promptType, responseType) match {
+          case Some(qgh) =>
+            (addQuizGroup(qgh, dataStore.initQuizGroup(qgh)), Some(qgh))
+          case None =>
+            l.logError(s"Could not find quiz group $promptType-$responseType in the data store")
+            (this, None)
+        }
+    }
 
   /*
    * Will not replace existing quiz groups.
@@ -177,8 +199,11 @@ case class Quiz(private val quizGroups: Map[QuizGroupHeader, QuizGroup] = ListMa
       Option[QuizItem] =
     mapVPLens(header).get(activeQuizGroups).flatMap(_.findQuizItem(prompt, response))
 
-  def updateWithUserResponse(isCorrect: Boolean, quizGroupHeader: QuizGroupHeader,
-      quizItem: QuizItem): Quiz = {
+  def updateWithUserResponse(
+    isCorrect: Boolean,
+    quizGroupHeader: QuizGroupHeader,
+    quizItem: QuizItem
+  ): Quiz = {
     qgCurrentPromptNumber(quizGroupHeader) match {
       case Some(qgPromptNumber) =>
         val userResponse = new UserResponse(qgPromptNumber)

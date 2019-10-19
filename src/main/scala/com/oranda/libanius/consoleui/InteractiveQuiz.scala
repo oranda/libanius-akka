@@ -26,7 +26,6 @@ import com.oranda.libanius.util.StringUtil
 import Output._
 import ConsoleUtil._
 
-import InteractiveQuiz.userId
 import com.oranda.libanius.dependencies._
 import com.oranda.libanius.model.quizitem.QuizItemViewWithChoices
 import com.oranda.libanius.model.quizgroup.{QuizGroup, QuizGroupHeader, WordMapping}
@@ -121,7 +120,7 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
   ) = {
     val (quizGroupHeader, prompt) = (quizItem.quizGroupHeader, quizItem.prompt.value)
     val isCorrect = Await.result(
-      quizGateway.isResponseCorrect(userId, quizGroupHeader, prompt, userResponse),
+      quizGateway.isResponseCorrect(quizGroupHeader, prompt, userResponse),
       10.seconds
     )
     if (isCorrect)
@@ -129,7 +128,7 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
     else
       output(s"\nWrong! It's ${quizItem.correctResponse}\n")
     Await.result(
-      quizGateway.updateWithUserResponse(userId, isCorrect, quizGroupHeader, quizItem.quizItem),
+      quizGateway.updateWithUserResponse(isCorrect, quizGroupHeader, quizItem.quizItem),
       10.seconds
     )
   }
@@ -142,8 +141,6 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
 }
 
 object InteractiveQuiz extends AppDependencyAccess {
-  val userId = UserId(new UUID(0, 0)) // Single user console app
-
   def runQuiz(quiz: Quiz): Unit = {
     val system = ActorSystem("libanius")
     val quizActor = system.actorOf(
