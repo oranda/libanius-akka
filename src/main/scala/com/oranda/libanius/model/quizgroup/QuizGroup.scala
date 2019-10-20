@@ -188,7 +188,8 @@ case class QuizGroup private(
 
     val allChoices: List[String] =
       QuizItemViewWithChoices.choicesInRandomOrder(quizItem, falseAnswers)
-    val promptResponseMap = QuizItemViewWithChoices.makePromptResponseMap(quiz, allChoices, qgh)
+    val promptResponseMap =
+      QuizItemViewWithChoices.makePromptResponseMap(quiz, allChoices, qgh.quizGroupKey)
 
     new QuizItemViewWithChoices(quizItem, currentPromptNumber, qgh, falseAnswers,
       allChoices, promptResponseMap, numCorrectResponses, numCorrectResponsesRequired,

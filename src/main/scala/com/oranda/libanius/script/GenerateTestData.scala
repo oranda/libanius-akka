@@ -69,7 +69,7 @@ object GenerateTestData extends App {
   val memLevelMap: Map[Int, QuizGroupMemoryLevel] = Map(0 -> qgml0, 1 -> qgml1, 2 -> qgml2, 3 -> qgml3)
   val userData: QuizGroupUserData = QuizGroupUserData(isActive = true)
   val qg = QuizGroup(memLevelMap, userData)
-  val qghEngGer = QuizGroupHeader(WordMapping, "English word", "German word", "|", 4)
+  val qghEngGer = QuizGroupHeader("English word", "German word", WordMapping, "|", 4)
   val quizGroups = ListMap(qghEngGer -> qg)
   val quiz = Quiz(quizGroups)
   //println(quiz)

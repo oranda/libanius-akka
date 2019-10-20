@@ -2,10 +2,9 @@ package com.oranda.libanius.actor
 
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.pattern.pipe
-
 import com.oranda.libanius.actor.QuizForUserActor._
 import com.oranda.libanius.model.action._
-import com.oranda.libanius.model.quizgroup.{QuizGroupHeader, WordMapping}
+import com.oranda.libanius.model.quizgroup.{QuizGroupHeader, QuizGroupKey, WordMapping}
 import com.oranda.libanius.model.quizitem.QuizItem
 import com.oranda.libanius.model.Quiz
 import com.oranda.libanius.model.action.{QuizItemSource, modelComponentsAsQuizItemSources}
@@ -29,19 +28,19 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
       sender() ! Util.stopwatch(state.quiz.scoreSoFar, "scoreSoFar")
     case ProduceQuizItem(_) =>
       sender() ! Util.stopwatch(produceQuizItem(state.quiz, NoParams()), "find quiz items")
-    case IsResponseCorrect(_, quizGroupHeader, prompt, userResponse) =>
-      state.quiz.isCorrect(quizGroupHeader, prompt, userResponse)
-    case UpdateWithUserResponse(_, prompt, correctResponse, promptType, responseType, isCorrect) =>
+    case IsResponseCorrect(_, quizGroupKey, prompt, userResponse) =>
+      sender() ! state.quiz.isCorrect(quizGroupKey, prompt, userResponse)
+    case UpdateWithUserResponse(_, quizGroupKey, prompt, correctResponse, isCorrect) =>
       handleStateChangingEvent(
-        QuizUpdatedWithUserResponse(prompt, correctResponse, promptType, responseType, isCorrect)
+        QuizUpdatedWithUserResponse(quizGroupKey, prompt, correctResponse, isCorrect)
       ) pipeTo sender()
-    case ActivateQuizGroup(_, promptType, responseType, singleGroupActiveMode) =>
+    case ActivateQuizGroup(_, quizGroupKey, singleGroupActiveMode) =>
       handleStateChangingEvent(
-        QuizGroupActivated(promptType, responseType, singleGroupActiveMode)
+        QuizGroupActivated(quizGroupKey, singleGroupActiveMode)
       ) pipeTo sender()
-    case RemoveQuizItem(_, promptType, responseType, prompt, correctResponse) =>
+    case RemoveQuizItem(_, quizGroupKey, prompt, correctResponse) =>
       handleStateChangingEvent(
-        QuizItemRemoved(promptType, responseType, prompt, correctResponse)
+        QuizItemRemoved(quizGroupKey, prompt, correctResponse)
       ) pipeTo sender()
   }
 
@@ -98,31 +97,28 @@ object QuizForUserActor {
 
   final case class UpdateWithUserResponse(
     userId: UserId,
+    quizGroupKey: QuizGroupKey,
     prompt: String,
     correctResponse: String,
-    promptType: String,
-    responseType: String,
     isCorrect: Boolean
   ) extends QuizCommand
 
   final case class ActivateQuizGroup(
     userId: UserId,
-    promptType: String,
-    responseType: String,
+    quizGroupKey: QuizGroupKey,
     singleGroupActiveMode: Boolean
   ) extends QuizCommand
 
   final case class RemoveQuizItem(
     userId: UserId,
-    promptType: String,
-    responseType: String,
+    quizGroupKey: QuizGroupKey,
     prompt: String,
     correctResponse: String
   ) extends QuizCommand
 
   final case class IsResponseCorrect(
     userId: UserId,
-    quizGroupHeader: QuizGroupHeader,
+    quizGroupKey: QuizGroupKey,
     prompt: String,
     userResponse: String
   ) extends QuizCommand
@@ -130,22 +126,19 @@ object QuizForUserActor {
   sealed trait QuizEvent
 
   final case class QuizUpdatedWithUserResponse(
+    quizGroupKey: QuizGroupKey,
     prompt: String,
     correctResponse: String,
-    promptType: String,
-    responseType: String,
     isCorrect: Boolean
   ) extends QuizEvent
 
   final case class QuizGroupActivated(
-    promptType: String,
-    responseType: String,
+    quizGroupKey: QuizGroupKey,
     singleGroupActiveMode: Boolean
   ) extends QuizEvent
 
   final case class QuizItemRemoved(
-    promptType: String,
-    responseType: String,
+    quizGroupKey: QuizGroupKey,
     prompt: String,
     correctResponse: String
   ) extends QuizEvent
@@ -153,7 +146,7 @@ object QuizForUserActor {
   final case class QuizState(quiz: Quiz) {
     def updateWithUserResponse(event: QuizUpdatedWithUserResponse): QuizState = {
       val updatedQuiz = for {
-        qgh <- dataStore.findQuizGroupHeader(event.promptType, event.responseType)
+        qgh <- dataStore.findQuizGroupHeader(event.quizGroupKey)
         quizItem <- quiz.findQuizItem(qgh, event.prompt, event.correctResponse)
       } yield Util.stopwatch(
         quiz.updateWithUserResponse(event.isCorrect, qgh, quizItem),
@@ -163,8 +156,7 @@ object QuizForUserActor {
     }
 
     def activateQuizGroup(event: QuizGroupActivated): QuizState = {
-      val (promptType, responseType) = (event.promptType, event.responseType)
-      val (quizUpdated1, qgh) = quiz.loadQuizGroup(promptType, responseType)
+      val (quizUpdated1, qgh) = quiz.loadQuizGroup(event.quizGroupKey)
       qgh match {
         case Some(qgh) =>
           val quizUpdated2 =
@@ -172,15 +164,14 @@ object QuizForUserActor {
           l.log(s"QuizForUserActor: activating quizgroup $qgh")
           QuizState(quizUpdated2.activate(qgh))
         case None =>
-          l.logError(s"Could not activate quiz group for $promptType-$responseType")
+          l.logError(s"Could not activate quiz group for ${event.quizGroupKey}")
           QuizState(quiz)
       }
     }
 
     def removeQuizItem(event: QuizItemRemoved): QuizState = {
       val quizItem = QuizItem(event.prompt, event.correctResponse)
-      val (promptType, responseType) = (event.promptType, event.responseType)
-      val updatedQuiz = quiz.findQuizGroupHeader(promptType, responseType) match {
+      val updatedQuiz = quiz.findQuizGroupHeader(event.quizGroupKey) match {
         case Some(qgh) =>
           val (quizAfter, wasRemoved) = quiz.removeQuizItem(quizItem, qgh)
           if (wasRemoved)
@@ -189,7 +180,7 @@ object QuizForUserActor {
             l.logError(s"Could not remove quiz item $quizItem")
           quizAfter
         case _ =>
-          l.logError(s"Quiz header not found for $promptType-$responseType")
+          l.logError(s"Quiz header not found for ${event.quizGroupKey}")
           quiz
       }
       QuizState(updatedQuiz)

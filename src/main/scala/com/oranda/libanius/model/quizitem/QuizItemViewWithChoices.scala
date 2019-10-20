@@ -23,7 +23,7 @@ import com.oranda.libanius.model.quizitem.TextValueOps.TextValue
 import scala.language.implicitConversions
 import scala.util.Random
 import com.oranda.libanius.model.Quiz
-import com.oranda.libanius.model.quizgroup.QuizGroupHeader
+import com.oranda.libanius.model.quizgroup.{QuizGroupHeader, QuizGroupKey}
 
 /**
  * Quiz item data holder:
@@ -45,6 +45,7 @@ case class QuizItemViewWithChoices(
   lazy val userResponses = quizItem.userResponses
   lazy val promptType = quizGroupHeader.promptType
   lazy val responseType = quizGroupHeader.responseType
+  lazy val quizGroupKey = quizGroupHeader.quizGroupKey
 
   def isComplete = numCorrectResponsesInARow >= numCorrectResponsesRequired
 }
@@ -62,17 +63,17 @@ object QuizItemViewWithChoices {
   def makePromptResponseMap(
     quiz: Quiz,
     choices: Seq[String],
-    quizGroupHeader: QuizGroupHeader
+    quizGroupKey: QuizGroupKey
   ): Seq[(String, String)] =
-    choices.map(promptToResponses(quiz, _, quizGroupHeader))
+    choices.map(promptToResponses(quiz, _, quizGroupKey))
 
   private[this] def promptToResponses(
     quiz: Quiz,
     choice: String,
-    quizGroupHeader: QuizGroupHeader
+    quizGroupKey: QuizGroupKey
   ): (String, String) = {
-    val values = quiz.findPromptsFor(choice, quizGroupHeader) match {
-      case Nil => quiz.findResponsesFor(choice, quizGroupHeader.reverse)
+    val values = quiz.findPromptsFor(choice, quizGroupKey) match {
+      case Nil => quiz.findResponsesFor(choice, quizGroupKey.reverse)
       case v => v
     }
     (choice, values.slice(0, 3).mkString(", "))

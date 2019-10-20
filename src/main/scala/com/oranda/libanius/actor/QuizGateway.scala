@@ -6,7 +6,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.oranda.libanius.actor.QuizForUserActor._
-import com.oranda.libanius.model.quizgroup.QuizGroupHeader
+import com.oranda.libanius.model.quizgroup.QuizGroupKey
 import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemViewWithChoices}
 
 import scala.concurrent.Future
@@ -22,27 +22,26 @@ class QuizGateway(quizActor: ActorRef, val system: ActorSystem) {
   val userId = UserId(UUID.randomUUID())     // this gateway is for a single user
 
   def updateWithUserResponse(
+    quizGroupKey: QuizGroupKey,
     isCorrect: Boolean,
-    quizGroupHeader: QuizGroupHeader,
     quizItem: QuizItem
   ) = {
     quizActor ! UpdateWithUserResponse(
       userId,
+      quizGroupKey,
       quizItem.prompt,
       quizItem.correctResponse,
-      quizGroupHeader.promptType,
-      quizGroupHeader.responseType,
       isCorrect
     )
     Future.successful(true)
   }
 
   def isResponseCorrect(
-    quizGroupHeader: QuizGroupHeader,
+    quizGroupKey: QuizGroupKey,
     prompt: String,
     userResponse: String
   ): Future[Boolean] =
-    (quizActor ? IsResponseCorrect(userId, quizGroupHeader, prompt, userResponse)).mapTo[Boolean]
+    (quizActor ? IsResponseCorrect(userId, quizGroupKey, prompt, userResponse)).mapTo[Boolean]
 
   def scoreSoFar: Future[BigDecimal] =
     (quizActor ? ScoreSoFar(userId)).mapTo[BigDecimal]

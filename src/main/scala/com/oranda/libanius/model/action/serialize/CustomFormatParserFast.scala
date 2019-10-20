@@ -161,15 +161,14 @@ object CustomFormatParserFast extends AppDependencyAccess {
   // Example input:
   // #quizGroup type="WordMapping" promptType="English word" responseType="German word" mainSeparator="|" useMultipleChoiceUntil="4" currentPromptNumber="0" isActive="true"
   def quizGroupHeader: Parser[QuizGroupHeader] =
-    P( "#quizGroup" ~ qgType ~ nvpString("promptType") ~ nvpString("responseType") ~
-        nvpString("mainSeparator").? ~ nvpInt("useMultipleChoiceUntil").?).map {
-      case (qgType, promptType, responseType, mainSeparator, useMultipleChoiceUntil) =>
+    P( "#quizGroup" ~ nvpString("promptType") ~ nvpString("responseType") ~ qgType ~
+      nvpString("mainSeparator").? ~ nvpInt("useMultipleChoiceUntil").?).map {
+      case (promptType, responseType, qgType, mainSeparator, useMultipleChoiceUntil) =>
         QuizGroupHeader(
-          quizGroupType = qgType,
-          promptType = promptType,
-          responseType = responseType,
-          mainSeparator = Separator(mainSeparator.getOrElse("|")),
-          useMultipleChoiceUntil = useMultipleChoiceUntil.getOrElse(4))
+          QuizGroupKey(promptType, responseType, qgType),
+          Separator(mainSeparator.getOrElse("|")),
+          useMultipleChoiceUntil = useMultipleChoiceUntil.getOrElse(4)
+        )
     }
 
   protected[serialize] def quizGroupHeaderAndUserData: P[(QuizGroupHeader, QuizGroupUserData)] =
@@ -197,5 +196,4 @@ object CustomFormatParserFast extends AppDependencyAccess {
       case (quizGroupHeader, qgud) => "\n" ~ quizGroupWithHeaderInner(quizGroupHeader, qgud)
     }
   }
-
 }

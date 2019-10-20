@@ -118,9 +118,9 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
     userResponse: String,
     quizItem: QuizItemViewWithChoices
   ) = {
-    val (quizGroupHeader, prompt) = (quizItem.quizGroupHeader, quizItem.prompt.value)
+    val (quizGroupKey, prompt) = (quizItem.quizGroupKey, quizItem.prompt.value)
     val isCorrect = Await.result(
-      quizGateway.isResponseCorrect(quizGroupHeader, prompt, userResponse),
+      quizGateway.isResponseCorrect(quizGroupKey, prompt, userResponse),
       10.seconds
     )
     if (isCorrect)
@@ -128,7 +128,7 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
     else
       output(s"\nWrong! It's ${quizItem.correctResponse}\n")
     Await.result(
-      quizGateway.updateWithUserResponse(isCorrect, quizGroupHeader, quizItem.quizItem),
+      quizGateway.updateWithUserResponse(quizGroupKey, isCorrect, quizItem.quizItem),
       10.seconds
     )
   }
