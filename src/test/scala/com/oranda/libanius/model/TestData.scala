@@ -171,7 +171,7 @@ object TestData {
   val quizGroupSimple = makeSimpleQuizGroup
 
   def makeQgwh(quizGroup: QuizGroup): QuizGroupWithHeader = {
-    val header = QuizGroupHeader(WordMapping, "English word", "German word", "|", 4)
+    val header = QuizGroupHeader("English word", "German word", WordMapping, "|", 4)
     QuizGroupWithHeader(header, quizGroup)
   }
   val qgwh: QuizGroupWithHeader = makeQgwh(quizGroup)
@@ -213,6 +213,6 @@ object TestData {
   )
 
   val quiz = Quiz.demoQuiz(quizData)
-  val qghEngGer = QuizGroupHeader(WordMapping, "English word", "German word", "|", 4)
-  val qghGerEng = QuizGroupHeader(WordMapping, "German word", "English word", "|", 4)
+  val qghEngGer = QuizGroupHeader("English word", "German word", WordMapping, "|", 4)
+  val qghGerEng = QuizGroupHeader("German word", "English word", WordMapping, "|", 4)
 }

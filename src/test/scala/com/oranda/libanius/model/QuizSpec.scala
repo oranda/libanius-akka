@@ -38,11 +38,12 @@ class QuizSpec extends Specification with AppDependencyAccess {
     }
 
     "find values for a prompt" in {
-      quiz.findResponsesFor("on", qghEngGer) mustEqual List("auf")
+      quiz.findResponsesFor("on", qghEngGer.quizGroupKey) mustEqual List("auf")
     }
 
     "offer translations for a word, given the group of the word" in {
-      val translations = quiz.findResponsesFor(prompt = "Vertrag", qghGerEng).toSet[String]
+      val translations =
+        quiz.findResponsesFor(prompt = "Vertrag", qghGerEng.quizGroupKey).toSet[String]
       translations.contains("contract") mustEqual true
       translations.contains("treaty") mustEqual true
     }
@@ -56,7 +57,8 @@ class QuizSpec extends Specification with AppDependencyAccess {
 
     "delete a quiz pair without deleting all values for that prompt" in {
       val quizBefore = Quiz.demoQuiz(quizData)
-      def translationsOfVertrag(quiz: Quiz) = quiz.findResponsesFor(prompt = "Vertrag", qghGerEng)
+      val qgKey = qghGerEng.quizGroupKey
+      def translationsOfVertrag(quiz: Quiz) = quiz.findResponsesFor(prompt = "Vertrag", qgKey)
       translationsOfVertrag(quizBefore).contains("contract") mustEqual true
 
       val (quizAfter, wasRemoved) =
