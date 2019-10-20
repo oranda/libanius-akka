@@ -110,7 +110,7 @@ object CustomFormatForModelComponents {
       strBuilder
         .append("#quizGroup promptType=\"").append(qgh.promptType)
         .append("\" responseType=\"").append(qgh.responseType)
-        .append("#quizGroup type=\"").append(qgh.quizGroupType)
+        .append("\" type=\"").append(qgh.quizGroupType)
         .append("\" mainSeparator=\"").append(qgh.mainSeparator)
         .append("\" useMultipleChoiceUntil=\"").append(qgh.useMultipleChoiceUntil)
         .append("\"")
