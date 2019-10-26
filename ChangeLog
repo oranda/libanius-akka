@@ -1,3 +1,12 @@
+== 0.4 Oct 26 2019
+
+  * Added Akka TestKit tests.
+
+  * isCorrect now returns tri-valued ResponseCorrectness instead of Boolean.
+
+  * Fixed some minor bugs and removed dead code.
+
+
 == 0.3.1 Oct 19 2019
 
  * Refactored many calls to use QuizGroupKey, simplifying parameter lists.
