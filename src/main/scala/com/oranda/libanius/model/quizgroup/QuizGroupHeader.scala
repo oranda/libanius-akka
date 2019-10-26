@@ -84,10 +84,10 @@ sealed abstract class QuizGroupType(val str: String) {
   def this() = this("WordMapping")
 }
 
-case object WordMapping extends QuizGroupType("WordMapping")
-case object QuestionAndAnswer extends QuizGroupType("QuestionAndAnswer")
-
 object QuizGroupType {
+  case object WordMapping extends QuizGroupType("WordMapping")
+  case object QuestionAndAnswer extends QuizGroupType("QuestionAndAnswer")
+
   def fromString(qgType: String): QuizGroupType = qgType match {
     case "WordMapping" => WordMapping
     case "QuestionAndAnswer" => QuestionAndAnswer

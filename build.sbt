@@ -15,8 +15,6 @@ resolvers ++= Seq("Typesafe Repository" at "http://repo.typesafe.com/typesafe/re
                  )
 
 libraryDependencies ++= Seq("com.typesafe" % "config" % "1.3.4",
-  "org.specs2" %% "specs2-core" % "4.2.0" % "test",
-  "org.specs2" %% "specs2-junit" % "4.2.0" % "test",
   "org.scalaz" %% "scalaz-core" % "7.2.25",
   "com.typesafe.akka" %% "akka-persistence" % "2.5.25",
   "com.typesafe.akka" %% "akka-remote" % "2.5.25",
@@ -24,14 +22,24 @@ libraryDependencies ++= Seq("com.typesafe" % "config" % "1.3.4",
   "com.typesafe.play" %% "play-json" % "2.6.7",
   "com.lihaoyi" %% "fastparse" % "1.0.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
-  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
+  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
+  "org.specs2" %% "specs2-core" % "4.2.0" % Test,
+  "org.specs2" %% "specs2-junit" % "4.2.0" % Test,
+  "org.scalactic" %% "scalactic" % "3.0.8",
+  "org.scalatest" %% "scalatest" % "3.0.8" % Test,
+  "com.typesafe.akka" %% "akka-testkit" % "2.5.25" % Test
 )
 
 unmanagedClasspath in Runtime += (baseDirectory map { bd => Attributed.blank(bd / "config") }).value
 
 unmanagedClasspath in Test += (baseDirectory map { bd => Attributed.blank(bd / "config") }).value
 
-parallelExecution in Test := true
+// Use a different configuration for tests
+javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application-test.conf"
+// We need to fork a JVM process when testing so the Java options above are applied
+fork in Test := true
+
+parallelExecution in Test := false  // for Akka Testkit
 
 artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
   artifact.name + "-" + version + "." + artifact.extension

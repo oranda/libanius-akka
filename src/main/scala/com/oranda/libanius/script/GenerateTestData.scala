@@ -22,6 +22,7 @@ import java.io.FileWriter
 
 import com.oranda.libanius.dependencies.DataStoreDefault
 import com.oranda.libanius.model.Quiz
+import com.oranda.libanius.model.quizgroup.QuizGroupType.WordMapping
 import com.oranda.libanius.model.quizgroup._
 import com.oranda.libanius.model.quizitem.QuizItem
 import com.oranda.libanius.simulation.FullQuiz._

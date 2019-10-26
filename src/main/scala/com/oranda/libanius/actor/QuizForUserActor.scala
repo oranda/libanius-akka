@@ -2,9 +2,10 @@ package com.oranda.libanius.actor
 
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import akka.pattern.pipe
+
 import com.oranda.libanius.actor.QuizForUserActor._
 import com.oranda.libanius.model.action._
-import com.oranda.libanius.model.quizgroup.{QuizGroupHeader, QuizGroupKey, WordMapping}
+import com.oranda.libanius.model.quizgroup.QuizGroupKey
 import com.oranda.libanius.model.quizitem.QuizItem
 import com.oranda.libanius.model.Quiz
 import com.oranda.libanius.model.action.{QuizItemSource, modelComponentsAsQuizItemSources}
@@ -25,7 +26,8 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
 
   override def receiveCommand: Receive = {
     case ScoreSoFar(_) =>
-      sender() ! Util.stopwatch(state.quiz.scoreSoFar, "scoreSoFar")
+      val scoreSoFar = Util.stopwatch(state.quiz.scoreSoFar, "scoreSoFar")
+      sender() ! scoreSoFar
     case ProduceQuizItem(_) =>
       sender() ! Util.stopwatch(produceQuizItem(state.quiz, NoParams()), "find quiz items")
     case IsResponseCorrect(_, quizGroupKey, prompt, userResponse) =>
@@ -49,19 +51,19 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
       val p = Promise[E]
       persist(e) { event =>
         p.success(event)
-        runEvent(event)
+        runStateChangingEvent(event)
         system.eventStream.publish(event)
         if (lastSequenceNr != 0 && lastSequenceNr % conf.numEventsBetweenSnapshots == 0)
           saveSnapshot(state)
       }
       p.future
     } else {
-      runEvent(e)
+      runStateChangingEvent(e)
       Future.successful(e)
     }
   }
 
-  private def runEvent(e: QuizEvent) = {
+  private def runStateChangingEvent(e: QuizEvent) = {
     e match {
       case e: QuizUpdatedWithUserResponse => state = state.updateWithUserResponse(e)
       case e: QuizGroupActivated => state = state.activateQuizGroup(e)
@@ -146,7 +148,7 @@ object QuizForUserActor {
   final case class QuizState(quiz: Quiz) {
     def updateWithUserResponse(event: QuizUpdatedWithUserResponse): QuizState = {
       val updatedQuiz = for {
-        qgh <- dataStore.findQuizGroupHeader(event.quizGroupKey)
+        qgh <- quiz.findQuizGroupHeader(event.quizGroupKey)
         quizItem <- quiz.findQuizItem(qgh, event.prompt, event.correctResponse)
       } yield Util.stopwatch(
         quiz.updateWithUserResponse(event.isCorrect, qgh, quizItem),

@@ -25,12 +25,12 @@ import scala.util.{Failure, Success, Try}
 import com.oranda.libanius.util.StringUtil
 import Output._
 import ConsoleUtil._
-
 import com.oranda.libanius.dependencies._
 import com.oranda.libanius.model.quizitem.QuizItemViewWithChoices
-import com.oranda.libanius.model.quizgroup.{QuizGroup, QuizGroupHeader, WordMapping}
+import com.oranda.libanius.model.quizgroup.{QuizGroup, QuizGroupHeader}
 import com.oranda.libanius.actor.{QuizForUserActor, QuizGateway, UserId}
-import com.oranda.libanius.model.{Quiz, UserResponse}
+import com.oranda.libanius.model.{Correct, Quiz}
+import com.oranda.libanius.model.quizgroup.QuizGroupType.WordMapping
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -119,10 +119,11 @@ class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
     quizItem: QuizItemViewWithChoices
   ) = {
     val (quizGroupKey, prompt) = (quizItem.quizGroupKey, quizItem.prompt.value)
-    val isCorrect = Await.result(
+    val responseCorrectness = Await.result(
       quizGateway.isResponseCorrect(quizGroupKey, prompt, userResponse),
       10.seconds
     )
+    val isCorrect = responseCorrectness == Correct
     if (isCorrect)
       output("\nCorrect!\n")
     else
