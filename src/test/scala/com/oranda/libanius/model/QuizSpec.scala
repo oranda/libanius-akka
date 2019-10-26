@@ -21,9 +21,9 @@ package com.oranda.libanius.model
 import org.specs2.mutable.Specification
 import com.oranda.libanius.dependencies.AppDependencyAccess
 import com.oranda.libanius.model.quizitem.QuizItem
-import com.oranda.libanius.model.quizgroup.{QuizGroupUserData, QuizGroupHeader, QuizGroup}
-
+import com.oranda.libanius.model.quizgroup.{QuizGroup, QuizGroupHeader, QuizGroupKey, QuizGroupType, QuizGroupUserData}
 import TestData._
+import com.oranda.libanius.actor.QuizForUserActor.IsResponseCorrect
 
 class QuizSpec extends Specification with AppDependencyAccess {
 
@@ -39,6 +39,21 @@ class QuizSpec extends Specification with AppDependencyAccess {
 
     "find values for a prompt" in {
       quiz.findResponsesFor("on", qghEngGer.quizGroupKey) mustEqual List("auf")
+    }
+
+    "confirm a response is correct" in {
+      val quizGroupKey = QuizGroupKey("English word", "German word", QuizGroupType.WordMapping)
+      quiz.isCorrect(quizGroupKey, "en route", "unterwegs") mustEqual Correct
+    }
+
+    "confirm a response is incorrect" in {
+      val quizGroupKey = QuizGroupKey("English word", "German word", QuizGroupType.WordMapping)
+      quiz.isCorrect(quizGroupKey, "en route", "unterschrift") mustEqual Incorrect
+    }
+
+    "return NotFound for an isCorrect call on a nonexistent item" in {
+      val quizGroupKey = QuizGroupKey("English word", "German word", QuizGroupType.WordMapping)
+      quiz.isCorrect(quizGroupKey, "nonexistent-prompt", "unterschrift") mustEqual ItemNotFound
     }
 
     "offer translations for a word, given the group of the word" in {

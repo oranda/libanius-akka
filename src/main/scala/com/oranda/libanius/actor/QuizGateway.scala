@@ -6,6 +6,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.oranda.libanius.actor.QuizForUserActor._
+import com.oranda.libanius.model.ResponseCorrectness
 import com.oranda.libanius.model.quizgroup.QuizGroupKey
 import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemViewWithChoices}
 
@@ -40,8 +41,9 @@ class QuizGateway(quizActor: ActorRef, val system: ActorSystem) {
     quizGroupKey: QuizGroupKey,
     prompt: String,
     userResponse: String
-  ): Future[Boolean] =
-    (quizActor ? IsResponseCorrect(userId, quizGroupKey, prompt, userResponse)).mapTo[Boolean]
+  ): Future[ResponseCorrectness] =
+    (quizActor ? IsResponseCorrect(userId, quizGroupKey, prompt, userResponse))
+      .mapTo[ResponseCorrectness]
 
   def scoreSoFar: Future[BigDecimal] =
     (quizActor ? ScoreSoFar(userId)).mapTo[BigDecimal]
