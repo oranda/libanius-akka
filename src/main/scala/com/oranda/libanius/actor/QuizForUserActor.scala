@@ -26,8 +26,7 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
 
   override def receiveCommand: Receive = {
     case ScoreSoFar(_) =>
-      val scoreSoFar = Util.stopwatch(state.quiz.scoreSoFar, "scoreSoFar")
-      sender() ! scoreSoFar
+      sender() !  Util.stopwatch(state.quiz.scoreSoFar, "scoreSoFar")
     case ProduceQuizItem(_) =>
       sender() ! Util.stopwatch(produceQuizItem(state.quiz, NoParams()), "find quiz items")
     case IsResponseCorrect(_, quizGroupKey, prompt, userResponse) =>
