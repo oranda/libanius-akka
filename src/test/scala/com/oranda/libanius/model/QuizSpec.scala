@@ -23,7 +23,6 @@ import com.oranda.libanius.dependencies.AppDependencyAccess
 import com.oranda.libanius.model.quizitem.QuizItem
 import com.oranda.libanius.model.quizgroup.{QuizGroup, QuizGroupHeader, QuizGroupKey, QuizGroupType, QuizGroupUserData}
 import TestData._
-import com.oranda.libanius.actor.QuizForUserActor.IsResponseCorrect
 
 class QuizSpec extends Specification with AppDependencyAccess {
 

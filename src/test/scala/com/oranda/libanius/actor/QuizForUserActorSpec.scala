@@ -3,9 +3,10 @@ package com.oranda.libanius.actor
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
 import java.util.UUID
-
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import com.oranda.libanius.actor.QuizForUserActor._
+
+import com.oranda.libanius.actor.QuizMessages._
+import com.oranda.libanius.actor.QuizEvents._
 import com.oranda.libanius.dependencies.AppDependencyAccess
 import com.oranda.libanius.model.{Correct, Incorrect, ItemNotFound, Quiz}
 import com.oranda.libanius.model.quizgroup.{QuizGroupKey, QuizGroupType}

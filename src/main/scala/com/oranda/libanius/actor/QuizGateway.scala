@@ -5,7 +5,7 @@ import java.util.UUID
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
 import akka.util.Timeout
-import com.oranda.libanius.actor.QuizForUserActor._
+import com.oranda.libanius.actor.QuizMessages._
 import com.oranda.libanius.model.ResponseCorrectness
 import com.oranda.libanius.model.quizgroup.QuizGroupKey
 import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemViewWithChoices}

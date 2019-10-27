@@ -5,11 +5,12 @@ import akka.pattern.pipe
 
 import com.oranda.libanius.actor.QuizForUserActor._
 import com.oranda.libanius.model.action._
-import com.oranda.libanius.model.quizgroup.QuizGroupKey
 import com.oranda.libanius.model.quizitem.QuizItem
 import com.oranda.libanius.model.Quiz
 import com.oranda.libanius.model.action.{QuizItemSource, modelComponentsAsQuizItemSources}
 import com.oranda.libanius.util.Util
+import QuizMessages._
+import QuizEvents._
 import QuizItemSource._
 import modelComponentsAsQuizItemSources._
 
@@ -87,62 +88,6 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
 }
 
 object QuizForUserActor {
-
-  sealed trait QuizCommand {
-    val userId: UserId
-  }
-
-  final case class ScoreSoFar(userId: UserId) extends QuizCommand
-
-  final case class ProduceQuizItem(userId: UserId) extends QuizCommand
-
-  final case class UpdateWithUserResponse(
-    userId: UserId,
-    quizGroupKey: QuizGroupKey,
-    prompt: String,
-    correctResponse: String,
-    isCorrect: Boolean
-  ) extends QuizCommand
-
-  final case class ActivateQuizGroup(
-    userId: UserId,
-    quizGroupKey: QuizGroupKey,
-    singleGroupActiveMode: Boolean
-  ) extends QuizCommand
-
-  final case class RemoveQuizItem(
-    userId: UserId,
-    quizGroupKey: QuizGroupKey,
-    prompt: String,
-    correctResponse: String
-  ) extends QuizCommand
-
-  final case class IsResponseCorrect(
-    userId: UserId,
-    quizGroupKey: QuizGroupKey,
-    prompt: String,
-    userResponse: String
-  ) extends QuizCommand
-
-  sealed trait QuizEvent
-
-  final case class QuizUpdatedWithUserResponse(
-    quizGroupKey: QuizGroupKey,
-    prompt: String,
-    correctResponse: String,
-    isCorrect: Boolean
-  ) extends QuizEvent
-
-  final case class QuizGroupActivated(
-    quizGroupKey: QuizGroupKey,
-    singleGroupActiveMode: Boolean
-  ) extends QuizEvent
-
-  final case class QuizItemRemoved(
-    quizGroupKey: QuizGroupKey,
-    prompt: String,
-    correctResponse: String
-  ) extends QuizEvent
 
   final case class QuizState(quiz: Quiz) {
     def updateWithUserResponse(event: QuizUpdatedWithUserResponse): QuizState = {
