@@ -17,14 +17,21 @@ James McCabe <jjtmccabe@gmail.com>
 Usage
 =====
 
-Usually Libanius will be run through an interface such as https://github.com/oranda/libanius-scalajs-react, but a console UI is provided in this project.
-Get a copy of `github.com/oranda/libanius-akka` using `git clone`,  From SBT, type:
+To use libanius-akka as a library in your project, add this to your `build.sbt`:
 
-    run
+    libraryDependencies += "com.github.oranda" %% "libanius-akka" % "0.4"
+                                                                               `
+A console UI is provided in this project. To run it, get a copy of 
+`github.com/oranda/libanius-akka` using `git clone`. Unzip it, navigate to the root
+directory of the project, and type:
+
+    sbt run
 
 Pick the option `com.oranda.libanius.consoleui.RunQuiz` and try out a sample quiz.
 
 This has been tested with Scala 2.12.6, Java 8, and sbt 1.1.2.
+
+For a graphical interface to Libanius, see https://github.com/oranda/libanius-scalajs-react-akka.
 
 
 License
