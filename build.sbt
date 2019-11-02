@@ -1,16 +1,42 @@
 import sbt._
 
+organization := "com.github.oranda"
 name := "libanius-akka"
-
 version := "0.4"
 
 scalaVersion := "2.12.6"
 
+homepage := Some(url("http://github.com/oranda/libanius-akka"))
+
+licenses += ("GNU Affero General Public License", url("https://www.gnu.org/licenses/agpl-3.0.en.html"))
+
+scmInfo := Some(ScmInfo(
+  url("https://github.com/oranda/libanius-akka"),
+  "scm:git:git@github.com/oranda/libanius-akka.git",
+  Some("scm:git:git@github.com/oranda/libanius-akka.git")))
+
+developers := List(
+  Developer(
+    id = "oranda",
+    name = "James McCabe",
+    email = "jjtmccabe@gmail.com",
+    url = url("https://github.com/oranda")
+  )
+)
+
+publishMavenStyle := true
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 resolvers ++= Seq("Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
-                  "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
-                  "releases"  at "http://oss.sonatype.org/content/repositories/releases",
                   "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
                  )
 
@@ -30,10 +56,6 @@ libraryDependencies ++= Seq("com.typesafe" % "config" % "1.3.4",
   "com.typesafe.akka" %% "akka-testkit" % "2.5.25" % Test
 )
 
-unmanagedClasspath in Runtime += (baseDirectory map { bd => Attributed.blank(bd / "config") }).value
-
-unmanagedClasspath in Test += (baseDirectory map { bd => Attributed.blank(bd / "config") }).value
-
 // Use a different configuration for tests
 javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application-test.conf"
 // We need to fork a JVM process when testing so the Java options above are applied
@@ -45,8 +67,8 @@ artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
   artifact.name + "-" + version + "." + artifact.extension
 }
 
+// an unmanaged dependency is no longer used, but these settings are retained in case it is needed
 assemblyJarName in assembly := s"${name.value}-${version.value}-fat.jar"
-
 assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)
 
 // Exclude the config jar and akka jars from the fat jar. Ideally these jars would be
