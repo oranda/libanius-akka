@@ -1,6 +1,7 @@
 package com.oranda.libanius.actor
 
 import com.oranda.libanius.model.quizgroup.QuizGroupKey
+import com.oranda.libanius.model.quizitem.QuizItemResponse
 
 object QuizMessages {
 
@@ -15,9 +16,7 @@ object QuizMessages {
   final case class UpdateWithUserResponse(
     userId: UserId,
     quizGroupKey: QuizGroupKey,
-    prompt: String,
-    correctResponse: String,
-    isCorrect: Boolean
+    quizItemResponse: QuizItemResponse
   ) extends QuizMessage
 
   final case class ActivateQuizGroup(

@@ -10,7 +10,7 @@ import com.oranda.libanius.actor.QuizEvents._
 import com.oranda.libanius.dependencies.AppDependencyAccess
 import com.oranda.libanius.model.{Correct, Incorrect, ItemNotFound, Quiz}
 import com.oranda.libanius.model.quizgroup.{QuizGroupKey, QuizGroupType}
-import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemViewWithChoices}
+import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemResponse, QuizItemViewWithChoices}
 
 class QuizForUserActorSpec extends TestKit(ActorSystem("libanius-test"))
   with ImplicitSender
@@ -48,7 +48,8 @@ class QuizForUserActorSpec extends TestKit(ActorSystem("libanius-test"))
 
     "update the quiz on a user response" in {
       val quizActor = newDemoQuizActor
-      quizActor ! UpdateWithUserResponse(userId, quizGroupKey, "en route", "unterwegs", true)
+      val quizItemResponse = QuizItemResponse("en route", "unterwegs", "unterwegs")
+      quizActor ! UpdateWithUserResponse(userId, quizGroupKey, quizItemResponse)
       expectMsgType[QuizUpdatedWithUserResponse]
 
       // get the score and make sure it is not zero, showing that the quiz was updated

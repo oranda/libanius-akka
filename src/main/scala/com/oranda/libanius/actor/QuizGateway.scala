@@ -8,7 +8,7 @@ import akka.util.Timeout
 import com.oranda.libanius.actor.QuizMessages._
 import com.oranda.libanius.model.ResponseCorrectness
 import com.oranda.libanius.model.quizgroup.QuizGroupKey
-import com.oranda.libanius.model.quizitem.{QuizItem, QuizItemViewWithChoices}
+import com.oranda.libanius.model.quizitem.{QuizItemResponse, QuizItemViewWithChoices}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -24,15 +24,12 @@ class QuizGateway(quizActor: ActorRef, val system: ActorSystem) {
 
   def updateWithUserResponse(
     quizGroupKey: QuizGroupKey,
-    isCorrect: Boolean,
-    quizItem: QuizItem
+    quizItemResponse: QuizItemResponse
   ) = {
     quizActor ! UpdateWithUserResponse(
       userId,
       quizGroupKey,
-      quizItem.prompt,
-      quizItem.correctResponse,
-      isCorrect
+      quizItemResponse
     )
     Future.successful(true)
   }

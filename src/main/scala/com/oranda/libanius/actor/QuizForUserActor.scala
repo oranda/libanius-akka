@@ -32,9 +32,9 @@ class QuizForUserActor(quiz: Quiz) extends PersistentActor {
       sender() ! Util.stopwatch(produceQuizItem(state.quiz, NoParams()), "find quiz items")
     case IsResponseCorrect(_, quizGroupKey, prompt, userResponse) =>
       sender() ! state.quiz.isCorrect(quizGroupKey, prompt, userResponse)
-    case UpdateWithUserResponse(_, quizGroupKey, prompt, correctResponse, isCorrect) =>
+    case UpdateWithUserResponse(_, quizGroupKey, quizItemResponse) =>
       handleStateChangingEvent(
-        QuizUpdatedWithUserResponse(quizGroupKey, prompt, correctResponse, isCorrect)
+        QuizUpdatedWithUserResponse(quizGroupKey, quizItemResponse)
       ) pipeTo sender()
     case ActivateQuizGroup(_, quizGroupKey, singleGroupActiveMode) =>
       handleStateChangingEvent(
@@ -91,11 +91,13 @@ object QuizForUserActor {
 
   final case class QuizState(quiz: Quiz) {
     def updateWithUserResponse(event: QuizUpdatedWithUserResponse): QuizState = {
+      val prompt = event.quizItemResponse.prompt
+      val correctResponse = event.quizItemResponse.correctResponse
       val updatedQuiz = for {
         qgh <- quiz.findQuizGroupHeader(event.quizGroupKey)
-        quizItem <- quiz.findQuizItem(qgh, event.prompt, event.correctResponse)
+        quizItem <- quiz.findQuizItem(qgh, prompt, correctResponse)
       } yield Util.stopwatch(
-        quiz.updateWithUserResponse(event.isCorrect, qgh, quizItem),
+        quiz.updateWithUserResponse(event.quizItemResponse.isCorrect, qgh, quizItem),
         "updateWithUserResponse"
       )
       QuizState(updatedQuiz.getOrElse(quiz))
