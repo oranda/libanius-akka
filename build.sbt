@@ -2,7 +2,7 @@ import sbt._
 
 organization := "com.github.oranda"
 name := "libanius-akka"
-version := "0.4.1"
+version := "0.4.2"
 
 scalaVersion := "2.12.6"
 
