@@ -19,7 +19,7 @@ Usage
 
 To use libanius-akka as a library in your project, add this to your `build.sbt`:
 
-    libraryDependencies += "com.github.oranda" %% "libanius-akka" % "0.4.2"
+    libraryDependencies += "com.github.oranda" %% "libanius-akka" % "0.4.2.2"
                                                                                `
 A console UI is provided in this project. To run it, get a copy of 
 `github.com/oranda/libanius-akka` using `git clone`. Unzip it, navigate to the root
