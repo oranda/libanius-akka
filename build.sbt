@@ -2,7 +2,7 @@ import sbt._
 
 organization := "com.github.oranda"
 name := "libanius-akka"
-version := "0.4.2"
+version := "0.4.2.2"
 
 scalaVersion := "2.12.6"
 
@@ -49,19 +49,29 @@ libraryDependencies ++= Seq("com.typesafe" % "config" % "1.3.4",
   "com.lihaoyi" %% "fastparse" % "1.0.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
   "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
-  "org.specs2" %% "specs2-core" % "4.2.0" % Test,
-  "org.specs2" %% "specs2-junit" % "4.2.0" % Test,
+  "org.specs2" %% "specs2-core" % "4.2.0" % "it,test",
+  "org.specs2" %% "specs2-junit" % "4.2.0" % "it,test",
   "org.scalactic" %% "scalactic" % "3.0.8",
-  "org.scalatest" %% "scalatest" % "3.0.8" % Test,
-  "com.typesafe.akka" %% "akka-testkit" % "2.5.25" % Test
+  "org.scalatest" %% "scalatest" % "3.0.8" % "it,test",
+  "com.typesafe.akka" %% "akka-testkit" % "2.5.25" % "it,test"
 )
 
-// Use a different configuration for tests
+
+configs(IntegrationTest)
+
+Defaults.itSettings
+
+// Use a different configuration for unit tests
 javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application-test.conf"
 // We need to fork a JVM process when testing so the Java options above are applied
 fork in Test := true
-
 parallelExecution in Test := false  // for Akka Testkit
+
+// Use a different configuration for simulations
+javaOptions in IntegrationTest +=  s"-Dconfig.file=${sourceDirectory.value}/it/resources/application-it.conf"
+fork in IntegrationTest := true
+parallelExecution in IntegrationTest := false  // for Akka Testkit
+
 
 artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
   artifact.name + "-" + version + "." + artifact.extension
@@ -99,9 +109,6 @@ javaOptions in run += "-XX:+CMSClassUnloadingEnabled"
 javaOptions in run += "-XX:PermSize=512M"
 
 javaOptions in run += "-XX:MaxPermSize=512M"
-
-
-import sbt._
 
 addCompilerPlugin("org.psywerx.hairyfotr" %% "linter" % "0.1.17")
 

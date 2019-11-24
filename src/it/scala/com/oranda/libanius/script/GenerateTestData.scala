@@ -20,17 +20,16 @@ package com.oranda.libanius.script
 
 import java.io.FileWriter
 
-import com.oranda.libanius.dependencies.DataStoreDefault
+import com.oranda.libanius.dependencies.{AppDependencyAccess, DataStoreDefault}
 import com.oranda.libanius.model.Quiz
 import com.oranda.libanius.model.quizgroup.QuizGroupType.WordMapping
 import com.oranda.libanius.model.quizgroup._
 import com.oranda.libanius.model.quizitem.QuizItem
-import com.oranda.libanius.simulation.FullQuiz._
 
 import scala.collection.immutable.{ListMap, Stream}
 import scala.language.reflectiveCalls
 
-object GenerateTestData extends App {
+object GenerateTestData extends App with AppDependencyAccess {
   def randomString(length: Int) = scala.util.Random.alphanumeric.take(length).mkString
 
   def genQiStream: Stream[QuizItem] = {
@@ -75,6 +74,6 @@ object GenerateTestData extends App {
   val quiz = Quiz(quizGroups)
   //println(quiz)
 
-  val dataStore = new DataStoreDefault()
+  override lazy val dataStore = new DataStoreDefault()
   saveQuiz(quiz, "data/test/testData.txt")
 }

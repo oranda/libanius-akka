@@ -18,7 +18,12 @@
 
 package com.oranda.libanius.simulation
 
-object DemoQuizSimWithCorrectAnswers extends App with DemoQuizSim {
+import com.oranda.libanius.model.Quiz
 
-  runQuiz()
+trait DemoQuizSim extends Simulation {
+
+  def runQuiz(): Unit = {
+    val quiz = Quiz.demoQuiz()
+    testAllQuizItems(quiz)
+  }
 }

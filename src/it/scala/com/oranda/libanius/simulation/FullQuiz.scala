@@ -25,11 +25,9 @@ import com.oranda.libanius.dependencies.AppDependencyAccess
 /*
  * This is a larger test, loading a quiz of thousands of items from the filesystem.
  */
-object FullQuiz extends App with Simulation with AppDependencyAccess {
+class FullQuiz extends Simulation with AppDependencyAccess {
 
-  runQuiz()
-
-  private def runQuiz(): Unit = {
+  def runQuiz(): Unit = {
 
     output("Running quiz...")
 

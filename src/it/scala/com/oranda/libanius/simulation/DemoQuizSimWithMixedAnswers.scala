@@ -21,9 +21,7 @@ package com.oranda.libanius.simulation
 import com.oranda.libanius.model.quizitem.QuizItemViewWithChoices
 import com.oranda.libanius.model.Quiz
 
-object DemoQuizSimWithMixedAnswers extends App with DemoQuizSim {
-
-  runQuiz()
+class DemoQuizSimWithMixedAnswers extends App with DemoQuizSim {
 
   /**
    * Give wrong and right answers according to a schedule, changing the pattern every
