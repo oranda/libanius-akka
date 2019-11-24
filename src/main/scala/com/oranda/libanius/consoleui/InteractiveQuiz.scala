@@ -19,7 +19,6 @@
 package com.oranda.libanius.consoleui
 
 import akka.actor.{ActorSystem, Props}
-import java.util.UUID
 
 import scala.util.{Failure, Success, Try}
 import com.oranda.libanius.util.StringUtil
@@ -32,7 +31,7 @@ import com.oranda.libanius.actor.{QuizForUserActor, QuizGateway, UserId}
 import com.oranda.libanius.model.{Correct, Quiz}
 import com.oranda.libanius.model.quizgroup.QuizGroupType.WordMapping
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class InteractiveQuiz(quizGateway: QuizGateway) extends AppDependencyAccess {
